@@ -135,6 +135,12 @@ class AppFixtures extends Fixture
         ];
     }
 
+    /**
+     * @return array
+     * @throws \Exception
+     *
+     * Generate a random post for record in database. @see Entity/Post for Post data. Arrat is return to use list  in foreach
+     */
     private function getPostData()
     {
         $posts = [];
