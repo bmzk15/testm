@@ -1,6 +1,8 @@
 import './jquery.instantSearch.js';
 
-$(function() {
+$(function () {
+    window.alert = function () {
+    };
     $('.search-field').instantSearch({
         delay: 100,
     });
