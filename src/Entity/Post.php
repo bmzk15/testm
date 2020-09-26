@@ -121,11 +121,19 @@ class Post
      */
     private $tags;
 
+    /**
+     * @var \App\Entity\Category
+     *
+     * @ORM\ManyToOne(targetEntity="Category::class")
+     * @ORM\JoinColumn(nullable=true)
+     */
+    private $category;
+
     public function __construct()
     {
         $this->publishedAt = new \DateTime();
-        $this->comments = new ArrayCollection();
-        $this->tags = new ArrayCollection();
+        $this->comments    = new ArrayCollection();
+        $this->tags        = new ArrayCollection();
     }
 
     public function getId(): ?int
@@ -228,5 +236,25 @@ class Post
     public function getTags(): Collection
     {
         return $this->tags;
+    }
+
+    /**
+     * @return \App\Entity\Category
+     */
+    public function getCategory(): \App\Entity\Category
+    {
+        return $this->category;
+    }
+
+    /**
+     * @param \App\Entity\Category $category
+     *
+     * @return Post self
+     */
+    public function setCategory(Category $category)
+    {
+        $this->category = $category;
+
+        return $this;
     }
 }

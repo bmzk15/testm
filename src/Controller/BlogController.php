@@ -58,7 +58,7 @@ class BlogController extends AbstractController
         // Every template name also has two extensions that specify the format and
         // engine for that template.
         // See https://symfony.com/doc/current/templating.html#template-suffix
-        return $this->render('blog/index.' . $_format . '.twig', ['posts' => $latestPosts]);
+        return $this->render('blog/index.'.$_format.'.twig', ['posts' => $latestPosts]);
     }
 
     /**
@@ -70,18 +70,19 @@ class BlogController extends AbstractController
             return $this->render('blog/search.html.twig');
         }
 
-        $query = $request->query->get('q', '');
-        $limit = $request->query->get('l', 10);
+        $query      = $request->query->get('q', '');
+        $limit      = $request->query->get('l', 10);
         $foundPosts = $posts->findBySearchQuery($query, $limit);
 
         $results = [];
         foreach ($foundPosts as $post) {
             $results[] = [
-                'title' => htmlspecialchars($post->getTitle(), ENT_COMPAT | ENT_HTML5),
-                'date' => $post->getPublishedAt()->format('M d, Y'),
-                'author' => htmlspecialchars($post->getAuthor()->getFullName(), ENT_COMPAT | ENT_HTML5),
-                'summary' => $post->getSummary(),
-                'url' => $this->generateUrl('blog_post', ['slug' => $post->getSlug()]),
+                'title'    => htmlspecialchars($post->getTitle(), ENT_COMPAT | ENT_HTML5),
+                'date'     => $post->getPublishedAt()->format('M d, Y'),
+                'author'   => htmlspecialchars($post->getAuthor()->getFullName(), ENT_COMPAT | ENT_HTML5),
+                'summary'  => $post->getSummary(),
+                'url'      => $this->generateUrl('blog_post', ['slug' => $post->getSlug()]),
+                'category' => $post->getCategory() ? $post->getCategory()->getName() : '',
             ];
         }
 
@@ -171,5 +172,4 @@ class BlogController extends AbstractController
             'form' => $form->createView(),
         ]);
     }
-
 }

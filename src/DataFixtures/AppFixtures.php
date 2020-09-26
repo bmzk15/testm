@@ -11,6 +11,7 @@
 
 namespace App\DataFixtures;
 
+use App\Entity\Category;
 use App\Entity\Comment;
 use App\Entity\Post;
 use App\Entity\Tag;
@@ -33,6 +34,7 @@ class AppFixtures extends Fixture
     {
         $this->loadUsers($manager);
         $this->loadTags($manager);
+        $this->loadCategories($manager);
         $this->loadPosts($manager);
     }
 
@@ -60,7 +62,21 @@ class AppFixtures extends Fixture
             $tag->setName($name);
 
             $manager->persist($tag);
-            $this->addReference('tag-' . $name, $tag);
+            $this->addReference('tag-'.$name, $tag);
+        }
+
+        $manager->flush();
+    }
+
+    private function loadCategories(ObjectManager $manager): void
+    {
+        foreach ($this->getCategories() as $name) {
+            $category = new Category();
+            $category->setName($name);
+            $category->setSlug(Slugger::slugify($name));
+            $this->addReference('category-'.$name, $category);
+
+            $manager->persist($category);
         }
 
         $manager->flush();
@@ -68,7 +84,7 @@ class AppFixtures extends Fixture
 
     private function loadPosts(ObjectManager $manager): void
     {
-        foreach ($this->getPostData() as [$title, $slug, $summary, $content, $publishedAt, $author, $tags]) {
+        foreach ($this->getPostData() as [$title, $slug, $summary, $content, $publishedAt, $author, $tags, $category]) {
             $post = new Post();
             $post->setTitle($title);
             $post->setSlug($slug);
@@ -77,12 +93,13 @@ class AppFixtures extends Fixture
             $post->setPublishedAt($publishedAt);
             $post->setAuthor($author);
             $post->addTag(...$tags);
+            $post->setCategory($category);
 
             foreach (range(1, 5) as $i) {
                 $comment = new Comment();
                 $comment->setAuthor($this->getReference('john_user'));
                 $comment->setContent($this->getRandomText(random_int(255, 512)));
-                $comment->setPublishedAt(new \DateTime('now + ' . $i . 'seconds'));
+                $comment->setPublishedAt(new \DateTime('now + '.$i.'seconds'));
 
                 $post->addComment($comment);
             }
@@ -127,10 +144,11 @@ class AppFixtures extends Fixture
                 $title, Slugger::slugify($title),
                 $this->getRandomText(),
                 $this->getPostContent(),
-                new \DateTime('now - ' . $i . 'days'),
+                new \DateTime('now - '.$i.'days'),
                 // Ensure that the first post is written by Jane Doe to simplify tests
                 $this->getReference(['jane_admin', 'tom_admin'][0 === $i ? 0 : random_int(0, 1)]),
                 $this->getRandomTags(),
+                $this->getRandomCategory(),
             ];
         }
 
@@ -179,7 +197,20 @@ class AppFixtures extends Fixture
         shuffle($tagNames);
         $selectedTags = \array_slice($tagNames, 0, random_int(2, 4));
 
-        return array_map(function ($tagName) {return $this->getReference('tag-' . $tagName);}, $selectedTags);
+        return array_map(function ($tagName) {
+            return $this->getReference('tag-'.$tagName);
+        }, $selectedTags);
+    }
+
+    /**
+     * @return object
+     */
+    private function getRandomCategory()
+    {
+        $categoriesName = $this->getTagData();
+        shuffle($categoriesName);
+
+        return $this->getReference('category-'.$categoriesName[0]);
     }
 
     private function getRandomText(int $maxLength = 255): string
@@ -187,7 +218,7 @@ class AppFixtures extends Fixture
         $phrases = $this->getPhrases();
         shuffle($phrases);
 
-        while (mb_strlen($text = implode('. ', $phrases) . '.') > $maxLength) {
+        while (mb_strlen($text = implode('. ', $phrases).'.') > $maxLength) {
             array_pop($phrases);
         }
 
@@ -234,4 +265,15 @@ tincidunt, faucibus nisl in, aliquet libero.
 MARKDOWN;
     }
 
+    /**
+     * @return string[]
+     */
+    private function getCategories()
+    {
+        return [
+            'Music',
+            'Movie',
+            'Video Game',
+        ];
+    }
 }
